@@ -4,7 +4,6 @@ from torchvision import transforms
 from PIL import Image
 import gdown
 import os
-import torch.nn as nn
 
 st.title("Pet Breed Classifier")
 
@@ -18,30 +17,6 @@ if not os.path.exists(MODEL_PATH):
     gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
     st.write("Model downloaded successfully!")
 
-# Определение архитектуры модели (пример, замените на вашу)
-class SimpleCNN(nn.Module):
-    def __init__(self, num_classes=23):  # Укажите количество классов
-        super(SimpleCNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
-        self.relu = nn.ReLU()
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(64 * 112 * 112, num_classes)  # Размеры под архитектуру
-
-    def forward(self, x):
-        x = self.pool(self.relu(self.conv1(x)))
-        x = x.view(x.size(0), -1)
-        x = self.fc1(x)
-        return x
-
-# Загрузка модели
-try:
-    model = SimpleCNN(num_classes=23)  # Укажите количество классов
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device("cpu")))
-    model.eval()
-    st.write("Model loaded successfully!")
-except Exception as e:
-    st.error(f"Failed to load model: {e}")
-
 # Список классов (пород) из вашего датасета
 CLASSES = [
     'abyssinian', 'american shorthair', 'beagle', 'boxer', 'bulldog',
@@ -50,6 +25,14 @@ CLASSES = [
     'pomeranian', 'pug', 'ragdoll cat', 'rottwiler', 'shiba inu',
     'siamese cat', 'sphynx', 'yorkshire terrier'
 ]
+
+# Загрузка модели (укажите правильную архитектуру или весь объект)
+try:
+    model = torch.load(MODEL_PATH, map_location=torch.device("cpu"))  # Если модель сохранена как объект
+    model.eval()
+    st.write("Model loaded successfully!")
+except Exception as e:
+    st.error(f"Failed to load model: {e}")
 
 # Интерфейс для загрузки изображения
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
@@ -66,8 +49,11 @@ if uploaded_file is not None:
     img_tensor = transform(image).unsqueeze(0)
     
     # Предсказание
-    with torch.no_grad():
-        output = model(img_tensor)
-        _, predicted = torch.max(output, 1)
-        predicted_class = CLASSES[predicted.item()]  # Название класса из списка CLASSES
-        st.write(f"Predicted Breed: **{predicted_class}**")
+    try:
+        with torch.no_grad():
+            output = model(img_tensor)
+            _, predicted = torch.max(output, 1)
+            predicted_class = CLASSES[predicted.item()]  # Название класса из списка CLASSES
+            st.write(f"Predicted Breed: **{predicted_class}**")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
