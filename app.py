@@ -42,6 +42,15 @@ try:
 except Exception as e:
     st.error(f"Failed to load model: {e}")
 
+# Список классов (пород) из вашего датасета
+CLASSES = [
+    'abyssinian', 'american shorthair', 'beagle', 'boxer', 'bulldog',
+    'chihuahua', 'corgi', 'dachshund', 'german shepherd', 'golden retriever',
+    'husky', 'labrador', 'maine coon', 'mumbai cat', 'persian cat',
+    'pomeranian', 'pug', 'ragdoll cat', 'rottwiler', 'shiba inu',
+    'siamese cat', 'sphynx', 'yorkshire terrier'
+]
+
 # Интерфейс для загрузки изображения
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 if uploaded_file is not None:
@@ -60,4 +69,5 @@ if uploaded_file is not None:
     with torch.no_grad():
         output = model(img_tensor)
         _, predicted = torch.max(output, 1)
-        st.write(f"Predicted Breed: {predicted.item()}")
+        predicted_class = CLASSES[predicted.item()]  # Название класса из списка CLASSES
+        st.write(f"Predicted Breed: **{predicted_class}**")
