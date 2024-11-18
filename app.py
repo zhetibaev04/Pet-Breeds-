@@ -8,23 +8,24 @@ import torch.nn as nn
 
 st.title("Pet Breed Classifier")
 
-# Скачивание модели из Google Drive, если она отсутствует
-MODEL_URL = "https://drive.google.com/file/d/12g8KcEZLD-7Y8ExbIStZNjTjEmu0TUXR/view?usp=sharing"  # Замените на свою ссылку
+# Ссылка на Google Drive для загрузки модели
+MODEL_URL = "https://drive.google.com/uc?id=12g8KcEZLD-7Y8ExbIStZNjTjEmu0TUXR"
 MODEL_PATH = "improved_model.pth"
 
+# Проверка наличия модели и её загрузка
 if not os.path.exists(MODEL_PATH):
     st.write("Downloading model...")
     gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
     st.write("Model downloaded successfully!")
 
-# Определение архитектуры модели (замените на свою)
+# Определение архитектуры модели (пример, замените на вашу)
 class SimpleCNN(nn.Module):
     def __init__(self, num_classes=23):  # Укажите количество классов
         super(SimpleCNN, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.fc1 = nn.Linear(64 * 112 * 112, num_classes)  # Обновите размеры, если архитектура другая
+        self.fc1 = nn.Linear(64 * 112 * 112, num_classes)  # Размеры под архитектуру
 
     def forward(self, x):
         x = self.pool(self.relu(self.conv1(x)))
@@ -32,10 +33,14 @@ class SimpleCNN(nn.Module):
         x = self.fc1(x)
         return x
 
-# Создание экземпляра модели
-model = SimpleCNN(num_classes=23)  # Укажите количество классов
-model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device("cpu")))  # Загрузка state_dict
-model.eval()
+# Загрузка модели
+try:
+    model = SimpleCNN(num_classes=23)  # Укажите количество классов
+    model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device("cpu")))
+    model.eval()
+    st.write("Model loaded successfully!")
+except Exception as e:
+    st.error(f"Failed to load model: {e}")
 
 # Интерфейс для загрузки изображения
 uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
